@@ -1,3 +1,9 @@
 from django.contrib import admin
+from .models import AnomalyEvent
 
-# Register your models here.
+
+@admin.register(AnomalyEvent)
+class AnomalyEventAdmin(admin.ModelAdmin):
+    list_display = ('timestamp', 'sensor_reading', 'severity_score')
+    list_filter = ('severity_score',)
+    ordering = ('-timestamp',)
