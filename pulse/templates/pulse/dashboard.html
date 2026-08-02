@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sentinel.pulse() - Real-Time Anomaly Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -130,6 +131,43 @@
     </div>
 
     <script>
+        const ctx = document.getElementById('pulseChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'CPU Temp (°C)',
+                    data: [],
+                    borderColor: '#00ff88',
+                    backgroundColor: '#00ff8833',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { color: '#00ff8822' },
+                        ticks: { color: '#00ff88' }
+                    },
+                    y: {
+                        min: 30,
+                        max: 100,
+                        grid: { color: '#00ff8822' },
+                        ticks: { color: '#00ff88' }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#00ff88' } }
+                }
+            }
+        });
+
         const streamSocket = new WebSocket('ws://' + window.location.host + '/ws/stream/');
 
         streamSocket.onmessage = function(e) {
