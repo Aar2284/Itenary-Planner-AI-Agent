@@ -1,5 +1,6 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
+from pulse.ml_brain import predict
 
 class PulseConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -12,12 +13,18 @@ class PulseConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         try:
             data = json.loads(text_data)
-            print(f"[WS] Received: {data}")
+            value = data.get("value")
+            print(f"[WS] Received: {value}")
+
+            prediction = predict(value)
+            is_anomaly = prediction == -1
 
             response = {
-                "value": data.get("value"),
-                "status": "received"
+                "value": value,
+                "is_anomaly": is_anomaly
             }
+            print(f"[ML] {value} -> {'Anomaly' if is_anomaly else 'Normal'}")
+
             await self.send(text_data=json.dumps(response))
 
         except json.JSONDecodeError:
