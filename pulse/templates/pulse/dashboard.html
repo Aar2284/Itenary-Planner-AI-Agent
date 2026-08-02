@@ -173,6 +173,19 @@
         streamSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
             console.log('Received:', data);
+
+            const now = new Date().toLocaleTimeString();
+            const value = data.value;
+
+            chart.data.labels.push(now);
+            chart.data.datasets[0].data.push(value);
+
+            if (chart.data.labels.length > 50) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+            }
+
+            chart.update('none');
         };
 
         streamSocket.onclose = function(e) {
