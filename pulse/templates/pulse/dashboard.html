@@ -54,6 +54,17 @@
             border: 1px solid #00ff8833;
             border-radius: 10px;
             padding: 20px;
+            transition: border-color 0.3s;
+        }
+
+        .chart-container.anomaly-flash {
+            border-color: #ff0055;
+            animation: borderFlash 0.5s ease-in-out 3;
+        }
+
+        @keyframes borderFlash {
+            0%, 100% { border-color: #00ff8833; }
+            50% { border-color: #ff0055; }
         }
 
         .sidebar {
@@ -168,6 +179,10 @@
             }
         });
 
+        const chartContainer = document.querySelector('.chart-container');
+        const currentValueEl = document.getElementById('currentValue');
+        const incidentLog = document.getElementById('incidentLog');
+
         const streamSocket = new WebSocket('ws://' + window.location.host + '/ws/stream/');
 
         streamSocket.onmessage = function(e) {
@@ -176,6 +191,29 @@
 
             const now = new Date().toLocaleTimeString();
             const value = data.value;
+            const isAnomaly = data.is_anomaly;
+
+            currentValueEl.textContent = value + '°C';
+            currentValueEl.className = 'current-value ' + (isAnomaly ? 'anomaly' : 'normal');
+
+            if (isAnomaly) {
+                chart.data.datasets[0].pointBackgroundColor = chart.data.datasets[0].pointBackgroundColor || [];
+                chart.data.datasets[0].pointBackgroundColor.push('#ff0055');
+                chart.data.datasets[0].pointRadius = chart.data.datasets[0].pointRadius || [];
+                chart.data.datasets[0].pointRadius.push(6);
+
+                chartContainer.classList.add('anomaly-flash');
+                setTimeout(() => chartContainer.classList.remove('anomaly-flash'), 1500);
+
+                const li = document.createElement('li');
+                li.textContent = now + ' - ' + value + '°C (Severity: ' + Math.round((value - 50) / 5) + ')';
+                incidentLog.prepend(li);
+            } else {
+                chart.data.datasets[0].pointBackgroundColor = chart.data.datasets[0].pointBackgroundColor || [];
+                chart.data.datasets[0].pointBackgroundColor.push('#00ff88');
+                chart.data.datasets[0].pointRadius = chart.data.datasets[0].pointRadius || [];
+                chart.data.datasets[0].pointRadius.push(0);
+            }
 
             chart.data.labels.push(now);
             chart.data.datasets[0].data.push(value);
@@ -183,6 +221,8 @@
             if (chart.data.labels.length > 50) {
                 chart.data.labels.shift();
                 chart.data.datasets[0].data.shift();
+                if (chart.data.datasets[0].pointBackgroundColor) chart.data.datasets[0].pointBackgroundColor.shift();
+                if (chart.data.datasets[0].pointRadius) chart.data.datasets[0].pointRadius.shift();
             }
 
             chart.update('none');
