@@ -1,0 +1,37 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Ask a Question - ScholarPulse{% endblock %}
+
+{% block content %}
+<div class="ask-page">
+    <h1>Ask a Question</h1>
+    <p class="subtitle">Get help from the community and AI</p>
+
+    <form method="POST" class="ask-form card">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Title</label>
+            <input type="text" name="title" required placeholder="What's your question? Be specific.">
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" rows="8" required placeholder="Include all the information someone would need to answer your question."></textarea>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Subject</label>
+                <select name="subject" required>
+                    {% for value, label in subjects %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Tags (comma separated)</label>
+                <input type="text" name="tags" placeholder="e.g. calculus, derivatives, homework">
+            </div>
+        </div>
+        <button type="submit" class="btn-primary btn-lg">Post Question</button>
+    </form>
+</div>
+{% endblock %}

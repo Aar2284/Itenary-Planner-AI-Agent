@@ -1,0 +1,92 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ question.title }} - ScholarPulse{% endblock %}
+
+{% block content %}
+<div class="question-detail">
+    <div class="question-header">
+        <h1>{{ question.title }}</h1>
+        <div class="q-meta">
+            <span class="subject-badge subject-{{ question.subject }}">{{ question.get_subject_display }}</span>
+            <span>Asked by {{ question.author.username }}</span>
+            <span>{{ question.created_at|timesince }} ago</span>
+            <span>{{ question.view_count }} views</span>
+        </div>
+    </div>
+
+    <div class="question-body card">
+        <p>{{ question.description|linebreaksbr }}</p>
+        {% if question.tags %}
+            <div class="tags">
+                {% for tag in question.tags|cut:" "|split:"," %}
+                    <span class="tag">{{ tag }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="answers-section">
+        <h2>{{ answers|length }} Answer{{ answers|length|pluralize }}</h2>
+
+        {% for answer in answers %}
+            <div class="answer-card card" data-answer-id="{{ answer.pk }}">
+                <div class="vote-buttons">
+                    <button class="vote-btn upvote {% if user_votes(answer.pk) == 1 %}active{% endif %}"
+                            onclick="vote({{ answer.pk }}, 1)">
+                        &#9650;
+                    </button>
+                    <span class="vote-score" id="score-{{ answer.pk }}">{{ answer.score }}</span>
+                    <button class="vote-btn downvote {% if user_votes(answer.pk) == -1 %}active{% endif %}"
+                            onclick="vote({{ answer.pk }}, -1)">
+                        &#9660;
+                    </button>
+                </div>
+                <div class="answer-content">
+                    {% if answer.is_ai_generated %}
+                        <span class="ai-badge">AI Generated</span>
+                    {% endif %}
+                    <p>{{ answer.content|linebreaksbr }}</p>
+                    <div class="answer-meta">
+                        <span>Answered by <strong>{{ answer.author.username }}</strong></span>
+                        <span>{{ answer.created_at|timesince }} ago</span>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if user.is_authenticated %}
+        <div class="post-answer card">
+            <h2>Your Answer</h2>
+            <form method="POST" action="{% url 'post_answer' question.pk %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <textarea name="content" rows="5" required placeholder="Write your answer here..."></textarea>
+                </div>
+                <button type="submit" class="btn-primary">Post Answer</button>
+            </form>
+        </div>
+    {% else %}
+        <div class="login-prompt card">
+            <p><a href="{% url 'login' %}">Login</a> to post an answer.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function vote(answerId, voteType) {
+    const formData = new FormData();
+    formData.append('vote_type', voteType);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch(`/answers/${answerId}/vote/`, {
+        method: 'POST',
+        body: formData,
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById(`score-${answerId}`).textContent = data.score;
+    });
+}
+</script>
+{% endblock %}
