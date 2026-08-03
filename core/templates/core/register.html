@@ -1,0 +1,32 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Sign Up - ScholarPulse{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h2>Create Account</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" name="username" required placeholder="Choose a username">
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" required placeholder="your@email.com">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" required placeholder="Min 8 characters">
+        </div>
+        <div class="form-group">
+            <label>Confirm Password</label>
+            <input type="password" name="password2" required placeholder="Repeat password">
+        </div>
+        <button type="submit" class="btn-primary">Sign Up</button>
+    </form>
+    <div class="auth-footer">
+        Already have an account? <a href="{% url 'login' %}">Login</a>
+    </div>
+</div>
+{% endblock %}

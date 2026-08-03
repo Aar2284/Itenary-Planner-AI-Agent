@@ -1,0 +1,30 @@
+{% extends 'core/base.html' %}
+
+{% block title %}ScholarPulse - AI-Powered Q&A{% endblock %}
+
+{% block content %}
+<div class="home-hero">
+    <h1>Ask. Learn. <span class="accent">Succeed.</span></h1>
+    <p>Get instant AI-powered answers to your academic questions</p>
+    {% if user.is_authenticated %}
+        <a href="#" class="btn-primary btn-lg">Ask a Question</a>
+    {% else %}
+        <a href="{% url 'register' %}" class="btn-primary btn-lg">Get Started</a>
+    {% endif %}
+</div>
+
+<div class="stats-bar">
+    <div class="stat">
+        <span class="stat-number">0</span>
+        <span class="stat-label">Questions</span>
+    </div>
+    <div class="stat">
+        <span class="stat-number">0</span>
+        <span class="stat-label">Answers</span>
+    </div>
+    <div class="stat">
+        <span class="stat-number">0</span>
+        <span class="stat-label">Students</span>
+    </div>
+</div>
+{% endblock %}

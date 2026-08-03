@@ -1,0 +1,38 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Profile - ScholarPulse{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <div class="profile-header">
+        <div class="avatar">{{ user.username.0|upper }}</div>
+        <div class="profile-info">
+            <h2>{{ user.username }}</h2>
+            <p class="email">{{ user.email }}</p>
+            <p class="joined">Joined {{ user.date_joined|date:"M Y" }}</p>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-number">{{ profile.reputation_score }}</span>
+            <span class="stat-label">Reputation</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ profile.questions_asked }}</span>
+            <span class="stat-label">Questions</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ profile.answers_given }}</span>
+            <span class="stat-label">Answers</span>
+        </div>
+    </div>
+
+    {% if profile.bio %}
+        <div class="card">
+            <h3>About</h3>
+            <p>{{ profile.bio }}</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
