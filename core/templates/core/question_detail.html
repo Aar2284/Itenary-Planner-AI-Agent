@@ -71,6 +71,18 @@
             <p><a href="{% url 'login' %}">Login</a> to post an answer.</p>
         </div>
     {% endif %}
+
+    {% if similar_questions %}
+        <div class="similar-questions card">
+            <h3>Similar Questions</h3>
+            {% for sq in similar_questions %}
+                <a href="{% url 'question_detail' sq.id %}" class="similar-item">
+                    <span class="similarity">{{ sq.similarity }}%</span>
+                    <span class="sim-title">{{ sq.title }}</span>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>
 
 <script>

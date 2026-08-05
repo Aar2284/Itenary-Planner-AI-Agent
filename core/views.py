@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Q, Count
 from .models import UserProfile, Question, Answer, Vote, SUBJECT_CHOICES
+from .ai_service import find_similar_questions, generate_answer
 
 
 # ── Auth ──────────────────────────────────────────────
@@ -124,12 +125,21 @@ def ask_question_view(request):
             tags=tags,
             author=request.user,
         )
+
+        ai_answer_text = generate_answer(question)
+        Answer.objects.create(
+            question=question,
+            author=request.user,
+            content=ai_answer_text,
+            is_ai_generated=True,
+        )
+
         profile, _ = UserProfile.objects.get_or_create(user=request.user)
         profile.questions_asked += 1
         profile.reputation_score += 10
         profile.save()
 
-        messages.success(request, "Question posted!")
+        messages.success(request, "Question posted! AI has generated an initial answer.")
         return redirect("question_detail", pk=question.pk)
 
     return render(request, "core/ask_question.html", {"subjects": SUBJECT_CHOICES})
@@ -146,10 +156,15 @@ def question_detail_view(request, pk):
         votes = Vote.objects.filter(user=request.user, answer__in=answers)
         user_votes = {v.answer_id: v.vote_type for v in votes}
 
+    query_text = f"{question.title} {question.description}"
+    similar_questions = find_similar_questions(query_text, threshold=0.2, max_results=3)
+    similar_questions = [q for q in similar_questions if q["id"] != question.pk]
+
     return render(request, "core/question_detail.html", {
         "question": question,
         "answers": answers,
         "user_votes": user_votes,
+        "similar_questions": similar_questions,
     })
 
 

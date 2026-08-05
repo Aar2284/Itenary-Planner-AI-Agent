@@ -667,3 +667,48 @@ body {
     padding: 3rem;
     color: var(--text-secondary);
 }
+
+/* Similar Questions */
+.similar-questions {
+    margin-top: 2rem;
+}
+
+.similar-questions h3 {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.similar-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border);
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: color 0.2s;
+}
+
+.similar-item:last-child {
+    border-bottom: none;
+}
+
+.similar-item:hover {
+    color: var(--accent);
+}
+
+.similarity {
+    background: var(--bg-secondary);
+    color: var(--accent);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    min-width: 45px;
+    text-align: center;
+}
+
+.sim-title {
+    font-size: 0.9rem;
+}
