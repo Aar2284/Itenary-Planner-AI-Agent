@@ -47,8 +47,57 @@ def test_get_distance_propagates_routing_error():
     print("get_distance propagates a routing error  OK")
 
 
+def test_order_stops_nearest_neighbor():
+    # Known distance matrix so the expected route is checkable by hand.
+    distance_matrix = {
+        frozenset(["A", "B"]): 5,
+        frozenset(["A", "C"]): 3,
+        frozenset(["A", "D"]): 10,
+        frozenset(["B", "C"]): 4,
+        frozenset(["B", "D"]): 6,
+        frozenset(["C", "D"]): 2,
+    }
+
+    def mock_get_distance(a, b):
+        d = distance_matrix[frozenset([a, b])]
+        return {"from": a, "to": b, "distance_km": d, "duration_min": d * 2}
+
+    with patch("app.tools.get_distance", side_effect=mock_get_distance):
+        result = order_stops(["A", "B", "C", "D"], start="A")
+
+    assert result["route"] == ["A", "C", "D", "B"]
+    assert result["total_distance_km"] == 11
+    assert result["total_duration_min"] == 22
+    print(f"Nearest-neighbor route: {' -> '.join(result['route'])}  OK")
+
+
+def test_order_stops_propagates_distance_error():
+    with patch("app.tools.get_distance", return_value={"error": "not found"}):
+        result = order_stops(["A", "B"])
+    assert "error" in result
+    print("order_stops propagates a distance error  OK")
+
+
+def test_order_stops_empty_list():
+    result = order_stops([])
+    assert "error" in result
+    print("Empty stop list handled gracefully  OK")
+
+
+def test_order_stops_single_stop_needs_no_calls():
+    with patch("app.tools.get_distance") as mock_gd:
+        result = order_stops(["A"])
+    assert result["route"] == ["A"]
+    assert mock_gd.call_count == 0
+    print("Single stop needs zero distance calls  OK")
+
+
 if __name__ == "__main__":
     test_get_distance_combines_geocode_and_route()
     test_get_distance_propagates_geocode_error()
     test_get_distance_propagates_routing_error()
-    print("\nAll get_distance orchestration tests passed.")
+    test_order_stops_nearest_neighbor()
+    test_order_stops_propagates_distance_error()
+    test_order_stops_empty_list()
+    test_order_stops_single_stop_needs_no_calls()
+    print("\nAll tests passed.")
