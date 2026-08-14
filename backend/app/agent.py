@@ -102,6 +102,34 @@ TOOL_FUNCTIONS = {
     "order_stops": order_stops,
 }
 
+def _call_groq(messages: list) -> object:
+    """
+    Calls the Groq API with a small retry loop for rate limits (429).
+    Groq's free tier has a fairly low tokens-per-minute limit, and a
+    multi-step agent loop can realistically hit it mid-run -- since
+    every step re-sends the growing message history, longer
+    conversations cost more tokens per call. Retrying with a short
+    backoff is much better than the whole turn crashing.
+    """
+    last_error = None
+    for attempt in range(MAX_API_RETRIES):
+        try:
+            return client.chat.completions.create(
+                model=MODEL,
+                messages=messages,
+                tools=TOOL_SCHEMAS,
+                tool_choice="auto",
+            )
+        except Exception as e:
+            last_error = e
+            is_rate_limit = "429" in str(e) or "rate_limit" in str(e).lower()
+            if is_rate_limit and attempt < MAX_API_RETRIES - 1:
+                wait = RETRY_BACKOFF_SECONDS * (attempt + 1)
+                print(f"[rate limited, retrying in {wait}s...]")
+                time.sleep(wait)
+                continue
+            raise
+    raise last_error
 
 def build_system_prompt(memory: TripContext) -> str:
     """
