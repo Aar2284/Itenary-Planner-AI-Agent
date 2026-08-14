@@ -177,12 +177,8 @@ def run_agent_turn(user_message: str, memory: TripContext, verbose: bool = True)
     trace = []
 
     for step in range(MAX_LOOP_STEPS):
-        response = client.chat.completions.create(
-            model=MODEL,
-            messages=messages,
-            tools=TOOL_SCHEMAS,
-            tool_choice="auto",
-        )
+        response = _call_groq(messages)
+        
         msg = response.choices[0].message
 
         if not msg.tool_calls:
