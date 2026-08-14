@@ -14,7 +14,9 @@ How this satisfies "agent, not chatbot" from the assignment:
 """
 
 import os
+import sys
 import json
+import time
 from groq import Groq
 from dotenv import load_dotenv
 
@@ -23,8 +25,25 @@ from app.memory import TripContext
 
 load_dotenv()
 
-MODEL = "llama-3.3-70b-versatile"
-MAX_LOOP_STEPS = 8  # safety cap so a confused model can't loop forever
+# Windows terminals often default to cp1252, which can't print some
+# Unicode characters models sometimes produce (arrows, emoji, etc.).
+# Reconfiguring stdout to UTF-8 fixes this once, here, instead of
+# needing $env:PYTHONIOENCODING set manually every session.
+
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass  # not all environments support reconfigure -- safe to ignore
+
+# Configurable via .env because available models differ per Groq
+# account/plan and change over time -- hardcoding one risks a
+# "model not found" error on someone else's account (or your own,
+# later). Falls back to a sensible default if not set.
+
+MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+MAX_LOOP_STEPS = 8       # safety cap so a confused model can't loop forever
+MAX_API_RETRIES = 3      # retries for transient errors like rate limits
+RETRY_BACKOFF_SECONDS = 5
 
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
