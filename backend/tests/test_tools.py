@@ -9,7 +9,7 @@ import sys, os
 from unittest.mock import patch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from app.tools import get_distance
+from app.tools import get_distance, order_stops
 
 
 def test_get_distance_combines_geocode_and_route():
