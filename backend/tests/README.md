@@ -23,9 +23,36 @@ print(result)
  'method': 'nearest_neighbor'}
 ```
 
+### Live Agent Test (Groq LLM + tool calling)
+
+```
+$ python3 -c "
+from app.agent import run_agent_turn
+from app.memory import TripContext
+memory = TripContext()
+result = run_agent_turn('Plan a route through Hawa Mahal, Amber Fort, and City Palace in Jaipur', memory, verbose=True)
+print('FINAL REPLY:', result['reply'])
+"
+
+[step 0] tool call: get_distance({'a': 'Hawa Mahal, Jaipur', 'b': 'Amber Fort, Jaipur'})
+[step 0] tool result: {'distance_km': 9.01, 'duration_min': 12.4}
+
+[step 1] tool call: get_distance({'a': 'Hawa Mahal, Jaipur', 'b': 'City Palace, Jaipur'})
+[step 1] tool result: {'distance_km': 0.67, 'duration_min': 2.0}
+
+[step 2] tool call: get_distance({'a': 'Amber Fort, Jaipur', 'b': 'City Palace, Jaipur'})
+[step 2] tool result: {'distance_km': 9.37, 'duration_min': 14.7}
+
+[step 3] tool call: order_stops({'start': 'Hawa Mahal, Jaipur', 'stops': ['Amber Fort, Jaipur', 'City Palace, Jaipur']})
+[step 3] tool result: {'route': ['Hawa Mahal, Jaipur', 'City Palace, Jaipur', 'Amber Fort, Jaipur'], 'total_distance_km': 9.86, 'total_duration_min': 15.8}
+
+FINAL REPLY: Recommended order: Hawa Mahal -> City Palace -> Amber Fort
+Total: ~9.9 km, ~16 min driving
+```
+
 ## Pytest Results
 
-**Total: 17/17 passed**
+**Total: 20/20 passed**
 
 ### test_geocoding.py
 
@@ -64,6 +91,14 @@ print(result)
 | `test_summary_reflects_state` | PASSED |
 | `test_summary_includes_duration_when_known` | PASSED |
 
+### test_agent.py
+
+| Test | Status |
+|------|--------|
+| `test_multi_step_loop_and_memory_sync` | PASSED |
+| `test_zero_tool_calls_when_not_needed` | PASSED |
+| `test_max_loop_steps_safety_cap` | PASSED |
+
 ---
 
-*Last updated: 2026-08-14*
+*Last updated: 2026-08-15*
