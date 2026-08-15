@@ -17,3 +17,6 @@ dist/
 # Frontend
 frontend/.env
 frontend/.env.local
+
+#Miscellaneous
+.vscode
