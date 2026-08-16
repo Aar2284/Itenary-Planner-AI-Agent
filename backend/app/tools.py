@@ -89,3 +89,75 @@ def order_stops(stops: list, start: str = None) -> dict:
         "total_duration_min": round(total_duration_min, 1),
         "method": "nearest_neighbor",
     }
+
+
+# Pace -> how many stops feel reasonable in one day. This is only a
+# fallback default; real usage has the agent ask the user about their
+# preferred pace via conversation and pass max_stops_per_day
+# explicitly (see agent.py's elicitation instructions, added later).
+PACE_STOPS_PER_DAY = {
+    "relaxed": 2,
+    "moderate": 3,
+    "packed": 4,
+}
+
+
+def plan_days(route: list, start_date: str, end_date: str,
+              pace: str = "moderate", max_stops_per_day: int = None) -> dict:
+    """
+    Split an already-ordered route (from order_stops) across the days
+    of a trip, given a start and end date ("YYYY-MM-DD" strings).
+
+    This is the "must be agentic" check for the date-aware part of
+    the project: it decides whether the route actually FITS the
+    available days and says so explicitly, rather than silently
+    cramming everything in or silently dropping stops.
+    """
+    from datetime import date
+
+    try:
+        start = date.fromisoformat(start_date)
+        end = date.fromisoformat(end_date)
+    except ValueError:
+        return {"error": "Dates must be in YYYY-MM-DD format."}
+
+    if end < start:
+        return {"error": "end_date must be on or after start_date."}
+
+    num_days = (end - start).days + 1
+
+    if max_stops_per_day is None:
+        max_stops_per_day = PACE_STOPS_PER_DAY.get(pace, PACE_STOPS_PER_DAY["moderate"])
+
+    capacity = num_days * max_stops_per_day
+
+    if len(route) > capacity:
+        return {
+            "fits": False,
+            "num_days": num_days,
+            "stops_per_day": max_stops_per_day,
+            "capacity": capacity,
+            "total_stops": len(route),
+            "excess_stops": route[capacity:],
+            "message": (
+                f"{len(route)} stops don't fit in {num_days} day(s) at "
+                f"{max_stops_per_day} stops/day (capacity {capacity}). "
+                f"{len(route) - capacity} stop(s) would need to be dropped, "
+                f"or the trip extended, or the pace increased."
+            ),
+        }
+
+    day_plan = {}
+    for i in range(num_days):
+        chunk = route[i * max_stops_per_day: (i + 1) * max_stops_per_day]
+        if not chunk:
+            break
+        day_key = (start.fromordinal(start.toordinal() + i)).isoformat()
+        day_plan[day_key] = chunk
+
+    return {
+        "fits": True,
+        "num_days": num_days,
+        "stops_per_day": max_stops_per_day,
+        "day_plan": day_plan,
+    }
