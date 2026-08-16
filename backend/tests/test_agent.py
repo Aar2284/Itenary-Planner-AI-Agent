@@ -87,8 +87,29 @@ def test_max_loop_steps_safety_cap():
     print("MAX_LOOP_STEPS safety cap works  OK")
 
 
+def test_retry_on_rate_limit_then_succeeds():
+    from app.agent import _call_groq
+
+    call_count = {"n": 0}
+
+    def flaky_create(model, messages, tools, tool_choice):
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            raise Exception("Error code: 429 - rate_limit_exceeded")
+        return _fake_response(content="ok")
+
+    with patch("app.agent.client.chat.completions.create", side_effect=flaky_create), \
+         patch("app.agent.time.sleep"):  # skip the real wait during tests
+        result = _call_groq([])
+
+    assert call_count["n"] == 2
+    assert result.choices[0].message.content == "ok"
+    print("Retry-on-429 then success  OK")
+
+
 if __name__ == "__main__":
     test_multi_step_loop_and_memory_sync()
     test_zero_tool_calls_when_not_needed()
     test_max_loop_steps_safety_cap()
+    test_retry_on_rate_limit_then_succeeds()
     print("\nAll agent loop tests passed (mocked Groq client).")
