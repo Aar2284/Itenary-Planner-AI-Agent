@@ -52,7 +52,7 @@ Total: ~9.9 km, ~16 min driving
 
 ## Pytest Results
 
-**Total: 20/20 passed**
+**Total: 21/21 passed**
 
 ### test_geocoding.py
 
@@ -98,6 +98,7 @@ Total: ~9.9 km, ~16 min driving
 | `test_multi_step_loop_and_memory_sync` | PASSED |
 | `test_zero_tool_calls_when_not_needed` | PASSED |
 | `test_max_loop_steps_safety_cap` | PASSED |
+| `test_retry_on_rate_limit_then_succeeds` | PASSED |
 
 ---
 
