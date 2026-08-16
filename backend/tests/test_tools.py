@@ -9,7 +9,7 @@ import sys, os
 from unittest.mock import patch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from app.tools import get_distance, order_stops
+from app.tools import get_distance, order_stops, plan_days
 
 
 def test_get_distance_combines_geocode_and_route():
@@ -92,6 +92,43 @@ def test_order_stops_single_stop_needs_no_calls():
     print("Single stop needs zero distance calls  OK")
 
 
+def test_plan_days_fits_evenly():
+    route = ["Hawa Mahal", "City Palace", "Amber Fort", "Nahargarh Fort"]
+    result = plan_days(route, "2026-09-01", "2026-09-02", max_stops_per_day=2)
+    assert result["fits"] is True
+    assert result["num_days"] == 2
+    assert result["day_plan"]["2026-09-01"] == ["Hawa Mahal", "City Palace"]
+    print("plan_days splits evenly across days  OK")
+
+
+def test_plan_days_uses_pace_default():
+    route = ["Hawa Mahal", "City Palace", "Amber Fort"]
+    result = plan_days(route, "2026-09-01", "2026-09-01", pace="packed")
+    assert result["fits"] is True
+    assert result["stops_per_day"] == 4
+    print("plan_days falls back to pace default when max_stops_per_day omitted  OK")
+
+
+def test_plan_days_reports_when_it_does_not_fit():
+    route = ["Hawa Mahal", "City Palace", "Amber Fort", "Nahargarh Fort", "Jal Mahal"]
+    result = plan_days(route, "2026-09-01", "2026-09-01", max_stops_per_day=2)
+    assert result["fits"] is False
+    assert result["excess_stops"] == ["Amber Fort", "Nahargarh Fort", "Jal Mahal"]
+    print("plan_days reports shortfall instead of silently dropping stops  OK")
+
+
+def test_plan_days_invalid_dates():
+    result = plan_days(["Hawa Mahal"], "2026-09-05", "2026-09-01")
+    assert "error" in result
+    print("plan_days rejects end_date before start_date  OK")
+
+
+def test_plan_days_malformed_date():
+    result = plan_days(["Hawa Mahal"], "Sept 1", "2026-09-01")
+    assert "error" in result
+    print("plan_days rejects malformed date strings  OK")
+
+    
 if __name__ == "__main__":
     test_get_distance_combines_geocode_and_route()
     test_get_distance_propagates_geocode_error()
