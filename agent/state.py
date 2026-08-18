@@ -75,3 +75,48 @@ class TripState:
             "allocation": self.allocation,
             "currency": self.trip["home_currency"]
         }
+
+    def log_expense(self, category: str, amount_local: float, exchange_rate: float,
+                    note: str = "") -> dict:
+        """Record an expense, converting from local currency to home currency."""
+        if not self.is_allocated:
+            return {"status": "error", "message": "Please allocate the budget first."}
+
+        category = category.lower()
+        if category not in self.allocation:
+            return {
+                "status": "error",
+                "message": f"Unknown category '{category}'. Valid: {list(self.allocation.keys())}"
+            }
+
+        amount_home = round(amount_local * exchange_rate, 2)
+
+        expense = {
+            "id": len(self.expenses) + 1,
+            "category": category,
+            "amount_local": amount_local,
+            "local_currency": self.trip["local_currency"],
+            "amount_home": amount_home,
+            "home_currency": self.trip["home_currency"],
+            "exchange_rate": exchange_rate,
+            "note": note,
+            "timestamp": datetime.now().isoformat()
+        }
+        self.expenses.append(expense)
+        self.spent[category] += amount_home
+
+        alerts = self._check_thresholds()
+
+        result = {
+            "status": "success",
+            "expense_logged": expense,
+            "category_spent": round(self.spent[category], 2),
+            "category_budget": self.allocation[category],
+            "category_remaining": round(self.allocation[category] - self.spent[category], 2),
+            "category_percent_used": round((self.spent[category] / self.allocation[category]) * 100, 1)
+        }
+
+        if alerts:
+            result["alerts"] = alerts
+
+        return result
