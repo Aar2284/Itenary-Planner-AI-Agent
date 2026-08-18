@@ -20,11 +20,14 @@ pytest tests/test_state.py -v
 | `test_allocate_budget_without_setup` | Allocating budget before trip setup | Error: "set up the trip first" | PASSED |
 | `test_allocate_budget_mismatch` | Allocation total doesn't match budget | Error: "doesn't match" | PASSED |
 | `test_allocate_budget_success` | Valid allocation matching budget | Success, is_allocated=True | PASSED |
+| `test_log_expense_without_allocation` | Log expense before budget allocation | Error: "allocate the budget first" | PASSED |
+| `test_log_expense_invalid_category` | Log expense with unknown category | Error: "Unknown category" | PASSED |
+| `test_log_expense_success` | Valid expense logging | Success, amount_home=120.0 | PASSED |
 
 
 ## Summary
 
-- **Total Tests:** 3
+- **Total Tests:** 6
 
 ## Notes
 
@@ -32,4 +35,4 @@ pytest tests/test_state.py -v
 - Each test creates a fresh TripState instance
 
 ---
-*Last updated: 2026-08-25*
+*Last updated: 2026-08-18*
