@@ -176,4 +176,51 @@ class TripState:
         if alerts:
             result["alerts"] = alerts
 
-        return result
+        return 
+
+    def get_budget_status(self) -> dict:
+        """Return full budget status with threshold alerts."""
+        if not self.is_allocated:
+            if not self.is_setup:
+                return {"status": "error", "message": "No trip set up yet. Use setup_trip first."}
+            return {"status": "error", "message": "Budget not allocated yet. Use allocate_budget first."}
+
+        categories = {}
+        total_spent = 0
+        total_budget = self.trip["total_budget"]
+
+        for cat in self.allocation:
+            budget = self.allocation[cat]
+            spent = self.spent[cat]
+            remaining = budget - spent
+            pct = (spent / budget * 100) if budget > 0 else 0
+            total_spent += spent
+
+            categories[cat] = {
+                "budget": round(budget, 2),
+                "spent": round(spent, 2),
+                "remaining": round(remaining, 2),
+                "percent_used": round(pct, 1),
+                "status": "over_budget" if remaining < 0 else
+                          "critical" if pct >= 85 else
+                          "warning" if pct >= 70 else "ok"
+            }
+
+        alerts = self._check_thresholds()
+        trip_progress = self._trip_progress_percent()
+
+        return {
+            "status": "success",
+            "trip": self.trip,
+            "categories": categories,
+            "overall": {
+                "total_budget": round(total_budget, 2),
+                "total_spent": round(total_spent, 2),
+                "total_remaining": round(total_budget - total_spent, 2),
+                "percent_used": round((total_spent / total_budget * 100) if total_budget > 0 else 0, 1)
+            },
+            "trip_progress_percent": trip_progress,
+            "expense_count": len(self.expenses),
+            "alerts": alerts,
+            "currency": self.trip["home_currency"]
+        }
