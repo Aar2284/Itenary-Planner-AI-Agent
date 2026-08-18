@@ -41,3 +41,37 @@ class TripState:
             "message": f"Trip to {destination} set up! Budget: {total_budget} {home_currency.upper()}",
             "trip": self.trip
         }
+
+    def allocate_budget(self, lodging: float, food: float, transport: float,
+                        activities: float, shopping: float) -> dict:
+        """Split total budget into categories."""
+        if not self.is_setup:
+            return {"status": "error", "message": "Please set up the trip first using setup_trip."}
+
+        total_allocated = lodging + food + transport + activities + shopping
+        total_budget = self.trip["total_budget"]
+
+        if abs(total_allocated - total_budget) > 1:
+            return {
+                "status": "error",
+                "message": (f"Allocation total ({total_allocated:.2f}) doesn't match "
+                            f"trip budget ({total_budget:.2f}). Difference: "
+                            f"{total_allocated - total_budget:.2f}. Please adjust.")
+            }
+
+        self.allocation = {
+            "lodging": lodging,
+            "food": food,
+            "transport": transport,
+            "activities": activities,
+            "shopping": shopping
+        }
+        self.spent = {cat: 0.0 for cat in self.allocation}
+        self.is_allocated = True
+
+        return {
+            "status": "success",
+            "message": "Budget allocated across categories.",
+            "allocation": self.allocation,
+            "currency": self.trip["home_currency"]
+        }
