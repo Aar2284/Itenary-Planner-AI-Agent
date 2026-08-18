@@ -76,6 +76,63 @@ class TripState:
             "currency": self.trip["home_currency"]
         }
 
+    def _check_thresholds(self) -> list:
+        """fires alerts based on spending vs remaining trip time."""
+        alerts = []
+        trip_progress = self._trip_progress_percent()
+        trip_remaining = 100 - trip_progress
+
+        for cat, budget in self.allocation.items():
+            if budget <= 0:
+                continue
+            spent = self.spent[cat]
+            pct_used = (spent / budget) * 100
+
+            if spent > budget:
+                overspend = spent - budget
+                alerts.append({
+                    "severity": "critical",
+                    "category": cat,
+                    "message": (f"OVER BUDGET: {cat.title()} is {overspend:.2f} "
+                                f"{self.trip['home_currency']} over budget!")
+                })
+            elif pct_used >= 85 and trip_remaining > 20:
+                alerts.append({
+                    "severity": "warning",
+                    "category": cat,
+                    "message": (f"{cat.title()} is {pct_used:.0f}% spent but "
+                                f"{trip_remaining:.0f}% of your trip remains.")
+                })
+            elif pct_used >= 70 and pct_used > trip_progress + 15:
+                alerts.append({
+                    "severity": "info",
+                    "category": cat,
+                    "message": (f"{cat.title()} spending ({pct_used:.0f}%) is "
+                                f"outpacing trip progress ({trip_progress:.0f}%).")
+                })
+
+        return alerts
+
+    def _trip_progress_percent(self) -> float:
+        """Calculate what percentage of the trip has elapsed."""
+        if not self.trip:
+            return 0.0
+        try:
+            start = date.fromisoformat(self.trip["start_date"])
+            end = date.fromisoformat(self.trip["end_date"])
+            today = date.today()
+
+            if today <= start:
+                return 0.0
+            if today >= end:
+                return 100.0
+
+            total_days = (end - start).days
+            elapsed = (today - start).days
+            return round((elapsed / total_days) * 100, 1) if total_days > 0 else 0.0
+        except (ValueError, KeyError):
+            return 50.0
+
     def log_expense(self, category: str, amount_local: float, exchange_rate: float,
                     note: str = "") -> dict:
         """Record an expense, converting from local currency to home currency."""
