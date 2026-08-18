@@ -61,6 +61,34 @@ def test_log_expense_success():
     assert result["expense_logged"]["amount_home"] == 120.0
     assert len(state.expenses) == 1
 
+def test_get_budget_status_no_trip():
+    """Budget status without trip setup should fail."""
+    state = TripState()
+    result = state.get_budget_status()
+    assert result["status"] == "error"
+    assert "No trip set up yet" in result["message"]
+
+
+def test_get_budget_status_no_allocation():
+    """Budget status without allocation should fail."""
+    state = TripState()
+    state.setup_trip("Bangkok", "INR", "THB", "2026-09-01", "2026-09-07", 50000)
+    result = state.get_budget_status()
+    assert result["status"] == "error"
+    assert "Budget not allocated yet" in result["message"]
+
+
+def test_get_budget_status_success():
+    """Budget status with valid trip and allocation should succeed."""
+    state = TripState()
+    state.setup_trip("Bangkok", "INR", "THB", "2026-09-01", "2026-09-07", 50000)
+    state.allocate_budget(15000, 10000, 8000, 10000, 7000)
+    result = state.get_budget_status()
+    assert result["status"] == "success"
+    assert result["overall"]["total_budget"] == 50000
+    assert result["overall"]["total_spent"] == 0
+    assert len(result["categories"]) == 5
+
 
 if __name__ == "__main__":
     test_allocate_budget_without_setup()
@@ -69,4 +97,7 @@ if __name__ == "__main__":
     test_log_expense_without_allocation()
     test_log_expense_invalid_category()
     test_log_expense_success()
+    test_get_budget_status_no_trip()
+    test_get_budget_status_no_allocation()
+    test_get_budget_status_success()
     print("All tests passed!")
