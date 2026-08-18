@@ -176,7 +176,7 @@ class TripState:
         if alerts:
             result["alerts"] = alerts
 
-        return 
+        return result 
 
     def get_budget_status(self) -> dict:
         """Return full budget status with threshold alerts."""
