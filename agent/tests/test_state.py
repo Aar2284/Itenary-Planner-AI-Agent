@@ -19,7 +19,7 @@ def test_allocate_budget_mismatch():
     """Allocation total not matching budget should fail."""
     state = TripState()
     state.setup_trip("Bangkok", "INR", "THB", "2026-09-01", "2026-09-07", 50000)
-    result = state.allocate_budget(10000, 10000, 10000, 10000, 10000)
+    result = state.allocate_budget(10000, 10000, 10000, 10000, 5000)
     assert result["status"] == "error"
     assert "doesn't match" in result["message"]
 
