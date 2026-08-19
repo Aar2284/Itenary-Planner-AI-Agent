@@ -26,11 +26,13 @@ pytest tests/test_state.py -v
 | `test_get_budget_status_no_trip` | Budget status without trip setup | Error: "No trip set up yet" | PASSED |
 | `test_get_budget_status_no_allocation` | Budget status without allocation | Error: "Budget not allocated yet" | PASSED |
 | `test_get_budget_status_success` | Budget status with valid trip | Success, total_budget=50000 | PASSED |
+| `test_get_or_create_session_new` | New session creation | session_id matches, is_setup=False | PASSED |
+| `test_get_existing_session` | Existing session retrieval | Returns same session, is_setup=True | PASSED |
 
 
 ## Summary
 
-- **Total Tests:** 9
+- **Total Tests:** 11
 
 ## Notes
 
