@@ -23,3 +23,25 @@ def execute_tool(tool_name: str, arguments: dict, state: TripState) -> str:
         return json.dumps(result, ensure_ascii=False)
     except Exception as e:
         return json.dumps({"status": "error", "message": f"Tool execution failed: {str(e)}"})
+
+def _handle_setup_trip(args: dict, state: TripState) -> dict:
+    """Initialize trip parameters."""
+    return state.setup_trip(
+        destination=args["destination"],
+        home_currency=args["home_currency"],
+        local_currency=args["local_currency"],
+        start_date=args["start_date"],
+        end_date=args["end_date"],
+        total_budget=args["total_budget"]
+    )
+
+
+def _handle_allocate_budget(args: dict, state: TripState) -> dict:
+    """Split budget across categories."""
+    return state.allocate_budget(
+        lodging=args["lodging"],
+        food=args["food"],
+        transport=args["transport"],
+        activities=args["activities"],
+        shopping=args["shopping"]
+    )
