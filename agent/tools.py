@@ -1,6 +1,7 @@
 """Tool Implementations - dispatch agent tool calls to handlers."""
 
 import json
+import requests
 from agent.state import TripState
 
 
@@ -45,3 +46,35 @@ def _handle_allocate_budget(args: dict, state: TripState) -> dict:
         activities=args["activities"],
         shopping=args["shopping"]
     )
+
+def _handle_get_exchange_rate(args: dict, state: TripState) -> dict:
+    """Call the Frankfurter API for live FX rates."""
+    base = args["base_currency"].upper()
+    target = args["target_currency"].upper()
+
+    try:
+        url = f"https://api.frankfurter.dev/v1/latest?base={base}&symbols={target}"
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        rate = data["rates"].get(target)
+        if rate is None:
+            return {
+                "status": "error",
+                "message": f"Could not find rate for {base} -> {target}"
+            }
+
+        return {
+            "status": "success",
+            "base_currency": base,
+            "target_currency": target,
+            "rate": rate,
+            "date": data.get("date", "unknown"),
+            "message": f"1 {base} = {rate} {target}"
+        }
+    except requests.exceptions.RequestException as e:
+        return {
+            "status": "error",
+            "message": f"Failed to fetch exchange rate: {str(e)}"
+        }
