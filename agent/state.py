@@ -224,3 +224,20 @@ class TripState:
             "alerts": alerts,
             "currency": self.trip["home_currency"]
         }
+
+# ── Session Store ────────────────────────────────────────────────────
+_sessions: dict[str, TripState] = {}
+
+
+def get_or_create_session(session_id: str | None = None) -> TripState:
+    """Get an existing session or create a new one."""
+    if session_id and session_id in _sessions:
+        return _sessions[session_id]
+    state = TripState()
+    _sessions[state.session_id] = state
+    return state
+
+
+def get_session(session_id: str) -> TripState | None:
+    """Get an existing session."""
+    return _sessions.get(session_id)
