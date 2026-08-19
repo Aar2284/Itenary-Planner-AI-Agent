@@ -78,3 +78,17 @@ def _handle_get_exchange_rate(args: dict, state: TripState) -> dict:
             "status": "error",
             "message": f"Failed to fetch exchange rate: {str(e)}"
         }
+
+def _handle_log_expense(args: dict, state: TripState) -> dict:
+    """Log an expense with currency conversion."""
+    return state.log_expense(
+        category=args["category"],
+        amount_local=args["amount_local"],
+        exchange_rate=args["exchange_rate"],
+        note=args.get("note", "")
+    )
+
+
+def _handle_get_budget_status(args: dict, state: TripState) -> dict:
+    """Return complete budget status."""
+    return state.get_budget_status()
