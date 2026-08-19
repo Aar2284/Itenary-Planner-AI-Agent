@@ -89,6 +89,21 @@ def test_get_budget_status_success():
     assert result["overall"]["total_spent"] == 0
     assert len(result["categories"]) == 5
 
+def test_get_or_create_session_new():
+    """New session should be created when none exists."""
+    state = get_or_create_session("test-session-1")
+    assert state.session_id == "test-session-1"
+    assert state.is_setup is False
+
+
+def test_get_existing_session():
+    """Existing session should be returned."""
+    state = get_or_create_session("test-session-2")
+    state.setup_trip("Paris", "EUR", "EUR", "2026-10-01", "2026-10-05", 2000)
+    same = get_session("test-session-2")
+    assert same is not None
+    assert same.is_setup is True
+
 
 if __name__ == "__main__":
     test_allocate_budget_without_setup()
@@ -100,4 +115,6 @@ if __name__ == "__main__":
     test_get_budget_status_no_trip()
     test_get_budget_status_no_allocation()
     test_get_budget_status_success()
+    test_get_or_create_session_new()
+    test_get_existing_session()
     print("All tests passed!")
