@@ -23,11 +23,14 @@ pytest tests/test_state.py -v
 | `test_log_expense_without_allocation` | Log expense before budget allocation | Error: "allocate the budget first" | PASSED |
 | `test_log_expense_invalid_category` | Log expense with unknown category | Error: "Unknown category" | PASSED |
 | `test_log_expense_success` | Valid expense logging | Success, amount_home=120.0 | PASSED |
+| `test_get_budget_status_no_trip` | Budget status without trip setup | Error: "No trip set up yet" | PASSED |
+| `test_get_budget_status_no_allocation` | Budget status without allocation | Error: "Budget not allocated yet" | PASSED |
+| `test_get_budget_status_success` | Budget status with valid trip | Success, total_budget=50000 | PASSED |
 
 
 ## Summary
 
-- **Total Tests:** 6
+- **Total Tests:** 9
 
 ## Notes
 
