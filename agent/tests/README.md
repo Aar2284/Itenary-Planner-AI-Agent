@@ -29,10 +29,18 @@ pytest tests/test_state.py -v
 | `test_get_or_create_session_new` | New session creation | session_id matches, is_setup=False | PASSED |
 | `test_get_existing_session` | Existing session retrieval | Returns same session, is_setup=True | PASSED |
 
+### test_tools.py
+
+| Test | Description | Expected | Status |
+|------|-------------|----------|--------|
+| `test_execute_unknown_tool` | Unknown tool name | Error: "Unknown tool" | PASSED |
+| `test_execute_setup_trip` | setup_trip tool call | Success, is_setup=True | PASSED |
+| `test_execute_allocate_budget` | allocate_budget tool call | Success, is_allocated=True | PASSED |
+| `test_execute_log_expense` | log_expense tool call | Success, 1 expense recorded | PASSED |
 
 ## Summary
 
-- **Total Tests:** 11
+- **Total Tests:** 15
 
 ## Notes
 
