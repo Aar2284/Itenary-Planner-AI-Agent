@@ -38,9 +38,18 @@ pytest tests/test_state.py -v
 | `test_execute_allocate_budget` | allocate_budget tool call | Success, is_allocated=True | PASSED |
 | `test_execute_log_expense` | log_expense tool call | Success, 1 expense recorded | PASSED |
 
+### test_prompts.py
+
+| Test | Description | Expected | Status |
+|------|-------------|----------|--------|
+| `test_system_prompt_not_empty` | System prompt has content | Length > 100, contains "TripBudgetBuddy" | PASSED |
+| `test_tool_schemas_count` | Should have 5 tools | len == 5 | PASSED |
+| `test_tool_schemas_have_required_fields` | Each schema has name, description, parameters | All fields present | PASSED |
+| `test_tool_names_match` | Tool names match expected list | Exact match | PASSED |
+
 ## Summary
 
-- **Total Tests:** 15
+- **Total Tests:** 19
 
 ## Notes
 
