@@ -15,7 +15,7 @@ from agent.state import get_or_create_session, get_session
 
 load_dotenv()
 
-app = Flask(__name__, static_folder="static")
+app = Flask(__name__, static_folder="frontend")
 CORS(app)
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -93,7 +93,7 @@ def run_agent_loop(session_id: str, user_message: str) -> str:
 
 @app.route("/")
 def index():
-    return send_from_directory("static", "index.html")
+    return send_from_directory("frontend", "index.html")
 
 
 @app.route("/<path:path>")
