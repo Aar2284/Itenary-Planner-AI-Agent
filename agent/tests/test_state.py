@@ -104,6 +104,21 @@ def test_get_existing_session():
     assert same is not None
     assert same.is_setup is True
 
+def test_setup_trip_invalid_budget():
+    """Zero or negative budget should fail."""
+    state = TripState()
+    result = state.setup_trip("Paris", "EUR", "EUR", "2026-10-01", "2026-10-05", 0)
+    assert result["status"] == "error"
+    assert "greater than zero" in result["message"]
+
+
+def test_setup_trip_dates_wrong_order():
+    """End date before start date should fail."""
+    state = TripState()
+    result = state.setup_trip("Paris", "EUR", "EUR", "2026-10-10", "2026-10-01", 2000)
+    assert result["status"] == "error"
+    assert "Start date must be before" in result["message"]
+
 
 if __name__ == "__main__":
     test_allocate_budget_without_setup()
@@ -117,4 +132,6 @@ if __name__ == "__main__":
     test_get_budget_status_success()
     test_get_or_create_session_new()
     test_get_existing_session()
+    test_setup_trip_invalid_budget()
+    test_setup_trip_dates_wrong_order()
     print("All tests passed!")
