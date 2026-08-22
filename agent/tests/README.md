@@ -47,9 +47,19 @@ pytest tests/test_state.py -v
 | `test_tool_schemas_have_required_fields` | Each schema has name, description, parameters | All fields present | PASSED |
 | `test_tool_names_match` | Tool names match expected list | Exact match | PASSED |
 
+### test_app.py
+
+| Test | Description | Expected | Status |
+|------|-------------|----------|--------|
+| `test_index_route` | Index route returns HTML | Status 200 | PASSED |
+| `test_chat_missing_message` | Chat without message field | Status 400 | PASSED |
+| `test_chat_empty_message` | Chat with empty message | Status 400 | PASSED |
+| `test_status_no_session` | Status with nonexistent session | "no_session" | PASSED |
+| `test_reset_endpoint` | Reset clears session | "reset" status | PASSED |
+
 ## Summary
 
-- **Total Tests:** 19
+- **Total Tests:** 24
 
 ## Notes
 
@@ -57,4 +67,4 @@ pytest tests/test_state.py -v
 - Each test creates a fresh TripState instance
 
 ---
-*Last updated: 2026-08-18*
+*Last updated: 2026-08-22*
