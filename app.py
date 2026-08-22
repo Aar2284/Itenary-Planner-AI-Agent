@@ -88,3 +88,71 @@ def run_agent_loop(session_id: str, user_message: str) -> str:
         return assistant_reply
 
     return "I seem to be stuck in a loop. Could you try rephrasing?"
+
+# ── API Routes ───────────────────────────────────────────────────────
+
+@app.route("/")
+def index():
+    return send_from_directory("static", "index.html")
+
+
+@app.route("/<path:path>")
+def static_files(path):
+    return send_from_directory("static", path)
+
+
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    data = request.get_json()
+    if not data or "message" not in data:
+        return jsonify({"error": "Missing 'message' field"}), 400
+
+    user_message = data["message"].strip()
+    if not user_message:
+        return jsonify({"error": "Empty message"}), 400
+
+    session_id = data.get("session_id", "default")
+    response = run_agent_loop(session_id, user_message)
+
+    return jsonify({"response": response, "session_id": session_id})
+
+
+@app.route("/api/status", methods=["GET"])
+def status():
+    session_id = request.args.get("session_id", "default")
+    state = get_session(session_id)
+    if not state:
+        return jsonify({"status": "no_session"})
+    if not state.is_setup:
+        return jsonify({"status": "no_trip"})
+    return jsonify(state.get_budget_status())
+
+
+@app.route("/api/expenses", methods=["GET"])
+def expenses():
+    session_id = request.args.get("session_id", "default")
+    state = get_session(session_id)
+    if not state:
+        return jsonify({"expenses": []})
+    return jsonify({"expenses": state.expenses})
+
+
+@app.route("/api/reset", methods=["POST"])
+def reset():
+    data = request.get_json() or {}
+    session_id = data.get("session_id", "default")
+    if session_id in conversations:
+        del conversations[session_id]
+    from agent.state import _sessions
+    if session_id in _sessions:
+        del _sessions[session_id]
+    return jsonify({"status": "reset", "message": "Session cleared."})
+
+
+if __name__ == "__main__":
+    print("\n[TripBudgetBuddy] Trip Currency Budgeter")
+    print("=" * 50)
+    print(f"Model: {MODEL}")
+    print(f"Server: http://localhost:5000")
+    print("=" * 50 + "\n")
+    app.run(debug=True, port=5000)
