@@ -28,6 +28,8 @@ pytest tests/test_state.py -v
 | `test_get_budget_status_success` | Budget status with valid trip | Success, total_budget=50000 | PASSED |
 | `test_get_or_create_session_new` | New session creation | session_id matches, is_setup=False | PASSED |
 | `test_get_existing_session` | Existing session retrieval | Returns same session, is_setup=True | PASSED |
+| `test_setup_trip_invalid_budget` | Zero budget should fail | Error: "greater than zero" | PASSED |
+| `test_setup_trip_dates_wrong_order` | End date before start date | Error: "Start date must be before" | PASSED |
 
 ### test_tools.py
 
@@ -59,7 +61,7 @@ pytest tests/test_state.py -v
 
 ## Summary
 
-- **Total Tests:** 24
+- **Total Tests:** 26
 
 ## Notes
 
