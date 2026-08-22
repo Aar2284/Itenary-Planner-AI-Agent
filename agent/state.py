@@ -23,6 +23,11 @@ class TripState:
     def setup_trip(self, destination: str, home_currency: str, local_currency: str,
                    start_date: str, end_date: str, total_budget: float) -> dict:
         """Initialize trip parameters."""
+        if total_budget <= 0:
+            return {"status": "error", "message": "Budget must be greater than zero."}
+        if start_date > end_date:
+            return {"status": "error", "message": "Start date must be before end date."}
+
         self.trip = {
             "destination": destination,
             "home_currency": home_currency.upper(),
