@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TripBudgetBuddy</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>TripBudgetBuddy</h1>
+            <p>Your AI Travel Budget Assistant</p>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message assistant">
+                <p>Hi! I'm TripBudgetBuddy. Tell me about your trip - destination, dates, and budget - and I'll help you manage your travel expenses!</p>
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="userInput" placeholder="Tell me about your trip..." autofocus>
+            <button id="sendBtn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
