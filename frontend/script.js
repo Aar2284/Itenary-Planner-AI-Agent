@@ -1,4 +1,4 @@
-let sessionId = 'session_' + Date.now();
+let sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
 async function sendMessage() {
     const input = document.getElementById('userInput');
