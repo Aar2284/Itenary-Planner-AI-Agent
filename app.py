@@ -65,7 +65,9 @@ def run_agent_loop(session_id: str, user_message: str) -> str:
                 temperature=0.7
             )
         except Exception as e:
-            return f"Error calling Groq API: {str(e)}"
+            error_msg = f"Error calling Groq API: {str(e)}"
+            print(f"[ERROR] {error_msg}")
+            return error_msg
 
         message = response.choices[0].message
 

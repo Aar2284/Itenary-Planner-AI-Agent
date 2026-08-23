@@ -8,6 +8,14 @@ async function sendMessage() {
     appendMessage('user', message);
     input.value = '';
 
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'message assistant';
+    typingDiv.id = 'typing';
+    typingDiv.innerHTML = '<p>Typing...</p>';
+    container.appendChild(typingDiv);
+    container.scrollTop = container.scrollHeight;
+
+    document.getElementById('typing')?.remove();
     try {
         const response = await fetch('/api/chat', {
             method: 'POST',
