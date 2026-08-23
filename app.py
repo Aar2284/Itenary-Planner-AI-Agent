@@ -31,7 +31,22 @@ def get_conversation(session_id: str) -> list:
 
 
 def run_agent_loop(session_id: str, user_message: str) -> str:
+    """
+    The core agent loop — this is the "orchestration" piece.
+
+    Flow: user message → LLM reasoning → tool call(s) → execute → 
+          feed result back → LLM reasons again → ... → final text response
+
+    This loop continues until the LLM produces a response without tool calls,
+    implementing "workflow chaining" and "autonomous execution pipelines".
+    """
     state = get_or_create_session(session_id)
+    if not get_session(session_id):
+        # Re-register with the correct session_id
+        from agent.state import _sessions
+        state.session_id = session_id
+        _sessions[session_id] = state
+
     history = get_conversation(session_id)
     history.append({"role": "user", "content": user_message})
 
