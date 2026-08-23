@@ -98,7 +98,7 @@ def index():
 
 @app.route("/<path:path>")
 def static_files(path):
-    return send_from_directory("static", path)
+    return send_from_directory("frontend", path)
 
 
 @app.route("/api/chat", methods=["POST"])
