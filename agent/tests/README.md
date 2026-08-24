@@ -58,10 +58,11 @@ pytest tests/test_state.py -v
 | `test_chat_empty_message` | Chat with empty message | Status 400 | PASSED |
 | `test_status_no_session` | Status with nonexistent session | "no_session" | PASSED |
 | `test_reset_endpoint` | Reset clears session | "reset" status | PASSED |
+| `test_conversation_trimming` | Conversation history trims when long | len > 50 check | PASSED |
 
 ## Summary
 
-- **Total Tests:** 26
+- **Total Tests:** 27
 
 ## Notes
 
@@ -69,4 +70,4 @@ pytest tests/test_state.py -v
 - Each test creates a fresh TripState instance
 
 ---
-*Last updated: 2026-08-22*
+*Last updated: 2026-08-24*
