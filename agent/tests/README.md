@@ -30,6 +30,7 @@ pytest tests/test_state.py -v
 | `test_get_existing_session` | Existing session retrieval | Returns same session, is_setup=True | PASSED |
 | `test_setup_trip_invalid_budget` | Zero budget should fail | Error: "greater than zero" | PASSED |
 | `test_setup_trip_dates_wrong_order` | End date before start date | Error: "Start date must be before" | PASSED |
+| `test_category_status_levels` | Budget status shows correct levels | status in critical/warning/over_budget | PASSED |
 
 ### test_tools.py
 
@@ -62,7 +63,7 @@ pytest tests/test_state.py -v
 
 ## Summary
 
-- **Total Tests:** 27
+- **Total Tests:** 28
 
 ## Notes
 
