@@ -119,6 +119,15 @@ def test_setup_trip_dates_wrong_order():
     assert result["status"] == "error"
     assert "Start date must be before" in result["message"]
 
+def test_category_status_levels():
+    """Budget status should show correct status levels."""
+    state = TripState()
+    state.setup_trip("Bangkok", "INR", "THB", "2026-09-01", "2026-09-07", 50000)
+    state.allocate_budget(10000, 10000, 10000, 10000, 10000)
+    state.log_expense("food", 20000, 0.24, "Big dinner")
+    result = state.get_budget_status()
+    assert result["categories"]["food"]["status"] in ["critical", "warning", "over_budget"]
+
 
 if __name__ == "__main__":
     test_allocate_budget_without_setup()
@@ -134,4 +143,5 @@ if __name__ == "__main__":
     test_get_existing_session()
     test_setup_trip_invalid_budget()
     test_setup_trip_dates_wrong_order()
+    test_category_status_levels()
     print("All tests passed!")
