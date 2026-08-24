@@ -92,8 +92,16 @@ def run_agent_loop(session_id: str, user_message: str) -> str:
                 except json.JSONDecodeError:
                     func_args = {}
 
+                print(f"[TOOL CALL] {func_name}({json.dumps(func_args, indent=2)})")
+
                 result = execute_tool(func_name, func_args, state)
-                history.append({"role": "tool", "tool_call_id": tool_call.id, "content": result})
+                print(f"[TOOL RESULT] {result[:200]}...")
+
+                history.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": result
+                })
             continue
 
         assistant_reply = message.content or "I'm not sure how to respond."
