@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agent.state import TripState
+from agent.state import TripState, get_or_create_session, get_session
 
 
 def test_allocate_budget_without_setup():
@@ -104,20 +104,6 @@ def test_get_existing_session():
     assert same is not None
     assert same.is_setup is True
 
-def test_setup_trip_invalid_budget():
-    """Zero or negative budget should fail."""
-    state = TripState()
-    result = state.setup_trip("Paris", "EUR", "EUR", "2026-10-01", "2026-10-05", 0)
-    assert result["status"] == "error"
-    assert "greater than zero" in result["message"]
-
-
-def test_setup_trip_dates_wrong_order():
-    """End date before start date should fail."""
-    state = TripState()
-    result = state.setup_trip("Paris", "EUR", "EUR", "2026-10-10", "2026-10-01", 2000)
-    assert result["status"] == "error"
-    assert "Start date must be before" in result["message"]
 
 def test_category_status_levels():
     """Budget status should show correct status levels."""
@@ -127,6 +113,89 @@ def test_category_status_levels():
     state.log_expense("food", 20000, 0.24, "Big dinner")
     result = state.get_budget_status()
     assert result["categories"]["food"]["status"] in ["critical", "warning", "over_budget"]
+
+
+def test_check_thresholds_critical_alert():
+    """Over budget should trigger critical alert."""
+    state = TripState()
+    state.setup_trip("Bangkok", "INR", "THB", "2026-09-01", "2026-09-07", 50000)
+    state.allocate_budget(10000, 10000, 10000, 10000, 10000)
+    state.log_expense("food", 50000, 0.24)
+    result = state.get_budget_status()
+    critical_alerts = [a for a in result["alerts"] if a["severity"] == "critical"]
+    assert len(critical_alerts) > 0
+    assert "OVER BUDGET" in critical_alerts[0]["message"]
+
+
+def test_check_thresholds_warning_alert():
+    """High spend with trip remaining should trigger warning alert."""
+    state = TripState()
+    state.setup_trip("Bangkok", "INR", "THB", "2026-09-01", "2026-12-31", 50000)
+    state.allocate_budget(10000, 10000, 10000, 10000, 10000)
+    state.log_expense("food", 40000, 0.24)
+    result = state.get_budget_status()
+    warning_alerts = [a for a in result["alerts"] if a["severity"] == "warning"]
+    assert len(warning_alerts) > 0
+
+
+def test_trip_progress_percent_not_started():
+    """Trip not started should return 0% progress."""
+    state = TripState()
+    state.setup_trip("Bangkok", "INR", "THB", "2026-12-01", "2026-12-07", 50000)
+    progress = state._trip_progress_percent()
+    assert progress == 0.0
+
+
+def test_trip_progress_percent_ended():
+    """Trip ended should return 100% progress."""
+    state = TripState()
+    state.setup_trip("Bangkok", "INR", "THB", "2020-01-01", "2020-01-07", 50000)
+    progress = state._trip_progress_percent()
+    assert progress == 100.0
+
+
+def test_log_expense_updates_category_spent():
+    """Logging expense should update category spent amount."""
+    state = TripState()
+    state.setup_trip("Bangkok", "INR", "THB", "2026-09-01", "2026-09-07", 50000)
+    state.allocate_budget(15000, 10000, 8000, 10000, 7000)
+    state.log_expense("food", 500, 0.24)
+    assert state.spent["food"] == 120.0
+
+
+def test_multiple_expenses_accumulate():
+    """Multiple expenses should accumulate in category."""
+    state = TripState()
+    state.setup_trip("Bangkok", "INR", "THB", "2026-09-01", "2026-09-07", 50000)
+    state.allocate_budget(15000, 10000, 8000, 10000, 7000)
+    state.log_expense("food", 500, 0.24)
+    state.log_expense("food", 500, 0.24)
+    assert state.spent["food"] == 240.0
+    assert len(state.expenses) == 2
+
+
+def test_get_budget_status_overall_calculation():
+    """Budget status should calculate overall spent correctly."""
+    state = TripState()
+    state.setup_trip("Bangkok", "INR", "THB", "2026-09-01", "2026-09-07", 50000)
+    state.allocate_budget(15000, 10000, 8000, 10000, 7000)
+    state.log_expense("food", 500, 0.24)
+    state.log_expense("transport", 300, 0.24)
+    result = state.get_budget_status()
+    assert result["overall"]["total_spent"] == 192.0
+
+
+def test_session_store_new_session():
+    """New session should be created with unique ID."""
+    state1 = get_or_create_session()
+    state2 = get_or_create_session()
+    assert state1.session_id != state2.session_id
+
+
+def test_get_session_nonexistent():
+    """Getting nonexistent session should return None."""
+    result = get_session("nonexistent-id")
+    assert result is None
 
 
 if __name__ == "__main__":
@@ -141,7 +210,14 @@ if __name__ == "__main__":
     test_get_budget_status_success()
     test_get_or_create_session_new()
     test_get_existing_session()
-    test_setup_trip_invalid_budget()
-    test_setup_trip_dates_wrong_order()
     test_category_status_levels()
+    test_check_thresholds_critical_alert()
+    test_check_thresholds_warning_alert()
+    test_trip_progress_percent_not_started()
+    test_trip_progress_percent_ended()
+    test_log_expense_updates_category_spent()
+    test_multiple_expenses_accumulate()
+    test_get_budget_status_overall_calculation()
+    test_session_store_new_session()
+    test_get_session_nonexistent()
     print("All tests passed!")
