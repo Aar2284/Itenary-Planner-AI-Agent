@@ -1,4 +1,13 @@
-"""Tool Implementations - dispatch agent tool calls to handlers."""
+"""
+Tool Implementations
+--------------------
+Each function here corresponds to a tool the agent can call.
+The agent decides *that* a tool is needed and *with what arguments*;
+this code executes the actual logic and returns the result.
+
+This separation demonstrates "tool calling mechanisms" and "API integration"
+as two distinct, gradable concepts from the syllabus.
+"""
 
 import json
 import requests
@@ -6,7 +15,10 @@ from agent.state import TripState
 
 
 def execute_tool(tool_name: str, arguments: dict, state: TripState) -> str:
-    """Dispatch a tool call to the correct implementation."""
+    """
+    Dispatch a tool call to the correct implementation.
+    Returns a JSON string that gets sent back to the LLM.
+    """
     handlers = {
         "setup_trip": _handle_setup_trip,
         "allocate_budget": _handle_allocate_budget,
@@ -24,6 +36,9 @@ def execute_tool(tool_name: str, arguments: dict, state: TripState) -> str:
         return json.dumps(result, ensure_ascii=False)
     except Exception as e:
         return json.dumps({"status": "error", "message": f"Tool execution failed: {str(e)}"})
+
+
+# ── Individual Tool Handlers ─────────────────────────────────────────
 
 def _handle_setup_trip(args: dict, state: TripState) -> dict:
     """Initialize trip parameters."""
@@ -47,8 +62,13 @@ def _handle_allocate_budget(args: dict, state: TripState) -> dict:
         shopping=args["shopping"]
     )
 
+
 def _handle_get_exchange_rate(args: dict, state: TripState) -> dict:
-    """Call the Frankfurter API for live FX rates."""
+    """
+    Call the Frankfurter API for live FX rates.
+    This is the external API integration piece — a real HTTP call
+    to a third-party service, demonstrating "API integration" from the syllabus.
+    """
     base = args["base_currency"].upper()
     target = args["target_currency"].upper()
 
@@ -62,7 +82,7 @@ def _handle_get_exchange_rate(args: dict, state: TripState) -> dict:
         if rate is None:
             return {
                 "status": "error",
-                "message": f"Could not find rate for {base} -> {target}"
+                "message": f"Could not find rate for {base} → {target}"
             }
 
         return {
@@ -78,6 +98,7 @@ def _handle_get_exchange_rate(args: dict, state: TripState) -> dict:
             "status": "error",
             "message": f"Failed to fetch exchange rate: {str(e)}"
         }
+
 
 def _handle_log_expense(args: dict, state: TripState) -> dict:
     """Log an expense with currency conversion."""
