@@ -2,6 +2,8 @@
 Trip State Management
 ---------------------
 Manages the in-memory trip context that persists across the entire conversation.
+This is the "context-aware agent" piece: one JSON object per session holds
+the trip details, budget allocation, expense log, and computed status.
 """
 
 from datetime import datetime, date
@@ -13,21 +15,17 @@ class TripState:
 
     def __init__(self):
         self.session_id = str(uuid.uuid4())
-        self.trip = None
-        self.allocation = {}
-        self.spent = {}
-        self.expenses = []
+        self.trip = None          # dict: destination, home_currency, local_currency, dates, total_budget
+        self.allocation = {}      # category -> amount in home currency
+        self.spent = {}           # category -> amount spent in home currency
+        self.expenses = []        # list of individual expense records
         self.is_setup = False
         self.is_allocated = False
 
+    # ── Setup ────────────────────────────────────────────────────────
     def setup_trip(self, destination: str, home_currency: str, local_currency: str,
                    start_date: str, end_date: str, total_budget: float) -> dict:
         """Initialize trip parameters."""
-        if total_budget <= 0:
-            return {"status": "error", "message": "Budget must be greater than zero."}
-        if start_date > end_date:
-            return {"status": "error", "message": "Start date must be before end date."}
-
         self.trip = {
             "destination": destination,
             "home_currency": home_currency.upper(),
@@ -47,6 +45,7 @@ class TripState:
             "trip": self.trip
         }
 
+    # ── Allocation ───────────────────────────────────────────────────
     def allocate_budget(self, lodging: float, food: float, transport: float,
                         activities: float, shopping: float) -> dict:
         """Split total budget into categories."""
@@ -56,6 +55,7 @@ class TripState:
         total_allocated = lodging + food + transport + activities + shopping
         total_budget = self.trip["total_budget"]
 
+        # Allow minor rounding tolerance
         if abs(total_allocated - total_budget) > 1:
             return {
                 "status": "error",
@@ -81,63 +81,7 @@ class TripState:
             "currency": self.trip["home_currency"]
         }
 
-    def _check_thresholds(self) -> list:
-        """fires alerts based on spending vs remaining trip time."""
-        alerts = []
-        trip_progress = self._trip_progress_percent()
-        trip_remaining = 100 - trip_progress
-
-        for cat, budget in self.allocation.items():
-            if budget <= 0:
-                continue
-            spent = self.spent[cat]
-            pct_used = (spent / budget) * 100
-
-            if spent > budget:
-                overspend = spent - budget
-                alerts.append({
-                    "severity": "critical",
-                    "category": cat,
-                    "message": (f"OVER BUDGET: {cat.title()} is {overspend:.2f} "
-                                f"{self.trip['home_currency']} over budget!")
-                })
-            elif pct_used >= 85 and trip_remaining > 20:
-                alerts.append({
-                    "severity": "warning",
-                    "category": cat,
-                    "message": (f"{cat.title()} is {pct_used:.0f}% spent but "
-                                f"{trip_remaining:.0f}% of your trip remains.")
-                })
-            elif pct_used >= 70 and pct_used > trip_progress + 15:
-                alerts.append({
-                    "severity": "info",
-                    "category": cat,
-                    "message": (f"{cat.title()} spending ({pct_used:.0f}%) is "
-                                f"outpacing trip progress ({trip_progress:.0f}%).")
-                })
-
-        return alerts
-
-    def _trip_progress_percent(self) -> float:
-        """Calculate what percentage of the trip has elapsed."""
-        if not self.trip:
-            return 0.0
-        try:
-            start = date.fromisoformat(self.trip["start_date"])
-            end = date.fromisoformat(self.trip["end_date"])
-            today = date.today()
-
-            if today <= start:
-                return 0.0
-            if today >= end:
-                return 100.0
-
-            total_days = (end - start).days
-            elapsed = (today - start).days
-            return round((elapsed / total_days) * 100, 1) if total_days > 0 else 0.0
-        except (ValueError, KeyError):
-            return 50.0
-
+    # ── Expense Logging ──────────────────────────────────────────────
     def log_expense(self, category: str, amount_local: float, exchange_rate: float,
                     note: str = "") -> dict:
         """Record an expense, converting from local currency to home currency."""
@@ -167,6 +111,7 @@ class TripState:
         self.expenses.append(expense)
         self.spent[category] += amount_home
 
+        # Check threshold (reactive agent behavior)
         alerts = self._check_thresholds()
 
         result = {
@@ -181,8 +126,9 @@ class TripState:
         if alerts:
             result["alerts"] = alerts
 
-        return result 
+        return result
 
+    # ── Budget Status ────────────────────────────────────────────────
     def get_budget_status(self) -> dict:
         """Return full budget status with threshold alerts."""
         if not self.is_allocated:
@@ -229,6 +175,76 @@ class TripState:
             "alerts": alerts,
             "currency": self.trip["home_currency"]
         }
+
+    # ── Reactive Threshold Engine ────────────────────────────────────
+    def _check_thresholds(self) -> list:
+        """
+        REACTIVE AGENT BEHAVIOR: condition-action rules.
+        Fires alerts based on spending vs. remaining trip time.
+        This is deterministic — not dependent on LLM judgment.
+        """
+        alerts = []
+        trip_progress = self._trip_progress_percent()
+        trip_remaining = 100 - trip_progress
+
+        for cat, budget in self.allocation.items():
+            if budget <= 0:
+                continue
+            spent = self.spent[cat]
+            pct_used = (spent / budget) * 100
+
+            # Rule 1: Over budget
+            if spent > budget:
+                overspend = spent - budget
+                alerts.append({
+                    "severity": "critical",
+                    "category": cat,
+                    "message": (f"🚨 OVER BUDGET: {cat.title()} is {overspend:.2f} "
+                                f"{self.trip['home_currency']} over budget!")
+                })
+
+            # Rule 2: High spend with significant trip remaining
+            elif pct_used >= 85 and trip_remaining > 20:
+                alerts.append({
+                    "severity": "warning",
+                    "category": cat,
+                    "message": (f"⚠️ {cat.title()} is {pct_used:.0f}% spent but "
+                                f"{trip_remaining:.0f}% of your trip remains. "
+                                f"Consider reducing spending here.")
+                })
+
+            # Rule 3: Moderate spend relative to trip progress
+            elif pct_used >= 70 and pct_used > trip_progress + 15:
+                alerts.append({
+                    "severity": "info",
+                    "category": cat,
+                    "message": (f"ℹ️ {cat.title()} spending ({pct_used:.0f}%) is "
+                                f"outpacing trip progress ({trip_progress:.0f}%). "
+                                f"Keep an eye on it.")
+                })
+
+        return alerts
+
+    def _trip_progress_percent(self) -> float:
+        """Calculate what percentage of the trip has elapsed."""
+        if not self.trip:
+            return 0.0
+        try:
+            start = date.fromisoformat(self.trip["start_date"])
+            end = date.fromisoformat(self.trip["end_date"])
+            today = date.today()
+
+            if today <= start:
+                return 0.0
+            if today >= end:
+                return 100.0
+
+            total_days = (end - start).days
+            elapsed = (today - start).days
+            return round((elapsed / total_days) * 100, 1) if total_days > 0 else 0.0
+        except (ValueError, KeyError):
+            return 50.0  # fallback
+
 
 # ── Session Store ────────────────────────────────────────────────────
 _sessions: dict[str, TripState] = {}
