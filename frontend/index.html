@@ -3,24 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TripBudgetBuddy</title>
+    <title>TripBudgetBuddy — AI Travel Budget Assistant</title>
+    <meta name="description" content="Smart AI-powered travel budget assistant with live currency conversion.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <h1>TripBudgetBuddy</h1>
-            <p>Your AI Travel Budget Assistant</p>
-        </div>
-        <div class="chat-messages" id="chatMessages">
-            <div class="message assistant">
-                <p>Hi! I'm TripBudgetBuddy. Tell me about your trip - destination, dates, and budget - and I'll help you manage your travel expenses!</p>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">🌍</span>
+                    <span class="logo-text">TripBudgetBuddy</span>
+                </div>
             </div>
-        </div>
-        <div class="chat-input">
-            <input type="text" id="userInput" placeholder="Tell me about your trip..." autofocus>
-            <button id="sendBtn" onclick="sendMessage()">Send</button>
-        </div>
+            <!-- Trip Tabs -->
+            <div class="trip-tabs-section">
+                <div class="trip-tabs-header">
+                    <span class="trip-tabs-label">Your Trips</span>
+                    <button class="add-trip-btn" id="addTripBtn" title="New Trip">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                    </button>
+                </div>
+                <div class="trip-tabs-list" id="tripTabsList"></div>
+            </div>
+            <div class="budget-panel" id="budgetPanel">
+                <div class="panel-placeholder" id="panelPlaceholder">
+                    <div class="placeholder-icon">✈️</div>
+                    <p>Start a conversation to set up your trip budget</p>
+                </div>
+                <div class="budget-overview" id="budgetOverview" style="display:none;">
+                    <div class="trip-info" id="tripInfo"></div>
+                    <div class="overall-budget" id="overallBudget"></div>
+                    <div class="category-bars" id="categoryBars"></div>
+                    <div class="alerts-section" id="alertsSection"></div>
+                </div>
+            </div>
+            <div class="expense-history" id="expenseHistory" style="display:none;">
+                <h3 class="section-title">Recent Expenses</h3>
+                <div class="expense-list" id="expenseList"></div>
+            </div>
+            <div class="quick-actions">
+                <button class="action-btn" id="btnStatus" title="Get budget status"><span>📊</span> Status</button>
+                <button class="action-btn" id="btnNewTrip" title="Start new trip"><span>🔄</span> New Trip</button>
+            </div>
+        </aside>
+        <main class="chat-area">
+            <header class="chat-header">
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+                </button>
+                <div class="header-info">
+                    <h1 class="header-title">TripBudgetBuddy</h1>
+                    <p class="header-subtitle">AI-Powered Travel Budget Assistant</p>
+                </div>
+                <div class="header-badge"><span class="status-dot"></span><span>Online</span></div>
+            </header>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message assistant-message animate-in">
+                    <div class="message-avatar">🌍</div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            <p>Hey there! 👋 I'm <strong>TripBudgetBuddy</strong>, your AI travel budget assistant.</p>
+                            <p>I can help you:</p>
+                            <ul>
+                                <li>🗺️ <strong>Plan a trip budget</strong></li>
+                                <li>💱 <strong>Convert currencies</strong> with live rates</li>
+                                <li>📝 <strong>Log expenses</strong> in local currency</li>
+                                <li>⚠️ <strong>Alert you</strong> when spending gets risky</li>
+                            </ul>
+                            <p>Tell me your <strong>destination</strong>, <strong>travel dates</strong>, and <strong>total budget</strong> to start! 🚀</p>
+                        </div>
+                        <span class="message-time">Just now</span>
+                    </div>
+                </div>
+            </div>
+            <div class="typing-indicator" id="typingIndicator" style="display:none;">
+                <div class="message-avatar">🌍</div>
+                <div class="typing-dots"><span></span><span></span><span></span></div>
+            </div>
+            <div class="chat-input-area">
+                <div class="input-container">
+                    <textarea id="messageInput" placeholder="Tell me about your trip or log an expense..." rows="1"></textarea>
+                    <button id="sendBtn" class="send-btn" aria-label="Send message">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/>
+                        </svg>
+                    </button>
+                </div>
+                <p class="input-hint">Press Enter to send · Shift+Enter for new line</p>
+            </div>
+        </main>
     </div>
     <script src="script.js"></script>
 </body>
