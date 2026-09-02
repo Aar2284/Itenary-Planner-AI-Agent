@@ -1,4 +1,4 @@
-# 🌍 TripBudgetBuddy
+# 🌍 Itenary Budget Planner AI Agent
 
 > **AI-powered travel budget assistant that helps travelers plan, allocate, and track trip expenses in real-time with live currency conversion.**
 
